@@ -1,0 +1,1 @@
+-- Add items that will be entered in database
