@@ -14,30 +14,11 @@ const db = mysql.createConnection({
   database: 'company_db',
 });
 
-// async function setupDatabase() {
-//     try {
-//       const schemaPath = path.join(__dirname, 'db', 'schema.sql');
-//       const schema = fs.readFileSync(schemaPath, 'utf8');
-//       const queries = schema.split(';').filter((query) => query.trim() !== '');
-  
-//       const connection = await pool.getConnection();
-//       for (let query of queries) {
-//         await connection.query(query);
-//       }
-  
-//       console.log('Database setup successful.');
-//       connection.release();
-//     } catch (err) {
-//       console.error('Error setting up database:', err);
-//     }
-//   }
-
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   startApp();
 });
 
-// setupDatabase();
 
 async function startApp() {
   inquirer
