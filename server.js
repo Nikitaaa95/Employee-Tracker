@@ -1,48 +1,48 @@
 const express = require('express');
-const mysql = require('mysql2');
+const mysql = require('mysql2/promise');
+const inquirer = require('inquirer');
+const fs = require('fs').promises; // Using fs.promises for asynchronous file reading
 const path = require('path');
-const fs = require('fs');
-
-const PORT = process.env.PORT || 3001;
 const app = express();
+const PORT = 3001;
 
-// Connection to database
-const connection = mysql.createConnection({
+const pool = mysql.createPool({
   host: 'localhost',
   user: 'root',
   password: 'bananasplit',
-  database: 'company_db'
+  database: 'company_db',
+  waitForConnections: true,
+  connectionLimit: 10,
 });
 
-connection.connect((err) => {
-    if (err) {
-      console.error('Error connecting to database: ', err);
-      return;
-    }
-  
-    console.log('Connected to the database.');
-  
+async function setupDatabase() {
+  try {
     const schemaPath = path.join(__dirname, 'db', 'schema.sql');
-    const schema = fs.readFileSync(schemaPath, 'utf8');
-    connection.query(schema, (err, result) => {
-      if (err) throw err;
-      console.log('Schema executed successfully.');
-    });
-  
-    const seedPath = path.join(__dirname, 'db', 'seeds.sql');
-    const seed = fs.readFileSync(seedPath, 'utf8');
-    connection.query(seed, (err, result) => {
-      if (err) throw err;
-      console.log('Seed executed successfully.');
-    });
-  
-    connection.end();
-  });
+    const schema = await fs.readFile(schemaPath, 'utf8');
+    const queries = schema.split(';').filter((query) => query.trim() !== '');
+
+    const connection = await pool.getConnection();
+    for (let query of queries) {
+      await connection.query(query);
+    }
+
+    console.log('Database setup successful.');
+    connection.release();
+  } catch (err) {
+    console.error('Error setting up database:', err);
+  }
+}
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+  startApp();
+});
+
+setupDatabase();
 
 async function startApp() {
-    const inquirer = await import('inquirer');
-
-    inquirer.default
+  const connection = await pool.getConnection(); // Define connection here
+  inquirer
     .prompt({
       name: 'action',
       type: 'list',
@@ -61,25 +61,25 @@ async function startApp() {
     .then((answer) => {
       switch (answer.action) {
         case 'View all departments':
-          viewDepartments();
+          viewDepartments(connection);
           break;
         case 'View all roles':
-          viewRoles();
+          viewRoles(connection);
           break;
         case 'View all employees':
-          viewEmployees();
+          viewEmployees(connection);
           break;
         case 'Add a department':
-          addDepartment();
+          addDepartment(connection);
           break;
         case 'Add a role':
-          addRole();
+          addRole(connection);
           break;
         case 'Add an employee':
-          addEmployee();
+          addEmployee(connection);
           break;
         case 'Update an employee role':
-          updateEmployeeRole();
+          updateEmployeeRole(connection);
           break;
         case 'Exit':
           connection.end();
@@ -89,7 +89,7 @@ async function startApp() {
 }
 
 // Ability to view tables
-function viewDepartments() {
+function viewDepartments(connection) {
   connection.query('SELECT * FROM department', (err, res) => {
     if (err) throw err;
     console.table(res);
@@ -97,7 +97,7 @@ function viewDepartments() {
   });
 }
 
-function viewRoles() {
+function viewRoles(connection) {
   connection.query(
     'SELECT role.id, role.title, role.salary, department.name AS department FROM role LEFT JOIN department ON role.department_id = department.id',
     (err, res) => {
@@ -108,7 +108,7 @@ function viewRoles() {
   );
 }
 
-function viewEmployees() {
+function viewEmployees(connection) {
   connection.query(
     `SELECT employee.id, employee.first_name, employee.last_name, role.title, role.salary, department.name AS department, CONCAT(manager.first_name, ' ', manager.last_name) AS manager
     FROM employee
@@ -123,7 +123,7 @@ function viewEmployees() {
   );
 }
 
-function addDepartment() {
+function addDepartment(connection) {
   inquirer
     .prompt({
       name: 'name',
@@ -146,7 +146,7 @@ function addDepartment() {
 }
 
 //inquire for adding new roles to the company
-function addRole() {
+function addRole(connection) {
   connection.query('SELECT * FROM department', (err, departments) => {
     if (err) throw err;
 
@@ -192,7 +192,7 @@ function addRole() {
 }
 
 //inquire for adding new employees to the company
-function addEmployee() {
+function addEmployee(connection) {
   connection.query('SELECT * FROM role', (err, roles) => {
     if (err) throw err;
 
@@ -253,8 +253,8 @@ function addEmployee() {
   });
 }
 
-//inquire for update roles for an exixting client
-function updateEmployeeRole() {
+//inquire for update roles for an existing client
+function updateEmployeeRole(connection) {
     connection.query('SELECT * FROM employee', (err, employees) => {
       if (err) throw err;
   
@@ -299,6 +299,3 @@ function updateEmployeeRole() {
     });
   }
   
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
