@@ -19,7 +19,6 @@ app.listen(PORT, () => {
   startApp();
 });
 
-
 async function startApp() {
   inquirer
     .prompt({
