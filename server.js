@@ -1,28 +1,28 @@
 const express = require('express');
 const mysql = require('mysql2');
+// Change the require statement to a dynamic import
+const inquirer = require('inquirer');
 
 const PORT = process.env.PORT || 3001;
 const app = express();
 
 // Connection to database
-const db = mysql.createConnection(
-    {
-      host: 'localhost',
-      user: 'root',
-      password: 'bananasplit',
-      database: 'company_db'
-    },
-    console.log(`Connected to the company database.`)
-  );
+const connection = mysql.createConnection({
+  host: 'localhost',
+  user: 'your_mysql_username',
+  password: 'your_mysql_password',
+  database: 'company_db'
+});
 
 connection.connect((err) => {
   if (err) throw err;
-  console.log('Connected to the database.');
+  console.log('Connected to the company database.');
   startApp();
 });
 
-// First inquire line to view table
-function startApp() {
+async function startApp() {
+  const inquirer = await import('inquirer');
+
   inquirer
     .prompt({
       name: 'action',
@@ -68,6 +68,15 @@ function startApp() {
       }
     });
 }
+
+// Function definitions for viewing, adding, and updating data...
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+
+
+
 // Ability to view tables
 function viewDepartments() {
   connection.query('SELECT * FROM department', (err, res) => {
