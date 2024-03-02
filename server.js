@@ -99,7 +99,7 @@ function viewDepartments() {
           },
         ])}
 
-        function addEmployee() {
+    function addEmployee() {
             connection.query('SELECT * FROM role', (err, roles) => {
               if (err) throw err;
           
@@ -133,3 +133,27 @@ function viewDepartments() {
                         choices: managers.map((manager) => `${manager.first_name} ${manager.last_name}`),
                       },
                     ])}
+                    function updateEmployeeRole() {
+                        connection.query('SELECT * FROM employee', (err, employees) => {
+                          if (err) throw err;
+                      
+                          connection.query('SELECT * FROM role', (err, roles) => {
+                            if (err) throw err;
+                      
+                            inquirer
+                              .prompt([
+                                {
+                                  name: 'employee',
+                                  type: 'list',
+                                  message: 'Select the employee to update:',
+                                  choices: employees.map(
+                                    (employee) => `${employee.first_name} ${employee.last_name}`
+                                  ),
+                                },
+                                {
+                                  name: 'role',
+                                  type: 'list',
+                                  message: 'Select the new role for this employee:',
+                                  choices: roles.map((role) => role.title),
+                                },
+                              ])}
