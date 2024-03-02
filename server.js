@@ -1,7 +1,5 @@
 const express = require('express');
 const mysql = require('mysql2');
-// Change the require statement to a dynamic import
-const inquirer = require('inquirer');
 
 const PORT = process.env.PORT || 3001;
 const app = express();
@@ -9,8 +7,8 @@ const app = express();
 // Connection to database
 const connection = mysql.createConnection({
   host: 'localhost',
-  user: 'your_mysql_username',
-  password: 'your_mysql_password',
+  user: 'root',
+  password: 'bananasplit',
   database: 'company_db'
 });
 
@@ -21,7 +19,7 @@ connection.connect((err) => {
 });
 
 async function startApp() {
-  const inquirer = await import('inquirer');
+    const inquirer = require('inquirer');
 
   inquirer
     .prompt({
@@ -68,14 +66,6 @@ async function startApp() {
       }
     });
 }
-
-// Function definitions for viewing, adding, and updating data...
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
-
-
 
 // Ability to view tables
 function viewDepartments() {
@@ -288,3 +278,6 @@ function updateEmployeeRole() {
     });
   }
   
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
