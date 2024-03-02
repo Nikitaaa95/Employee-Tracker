@@ -7,44 +7,39 @@ const inquirer = require('inquirer');
 const app = express();
 const PORT = 3001;
 
-const pool = mysql.createPool({
+const db = mysql.createConnection({
   host: 'localhost',
   user: 'root',
   password: 'bananasplit',
   database: 'company_db',
-  waitForConnections: true,
-  connectionLimit: 10,
 });
 
-async function setupDatabase() {
-    try {
-      const schemaPath = path.join(__dirname, 'db', 'schema.sql');
-      const schema = fs.readFileSync(schemaPath, 'utf8');
-      const queries = schema.split(';').filter((query) => query.trim() !== '');
+// async function setupDatabase() {
+//     try {
+//       const schemaPath = path.join(__dirname, 'db', 'schema.sql');
+//       const schema = fs.readFileSync(schemaPath, 'utf8');
+//       const queries = schema.split(';').filter((query) => query.trim() !== '');
   
-      const connection = await pool.getConnection();
-      for (let query of queries) {
-        await connection.query(query);
-      }
+//       const connection = await pool.getConnection();
+//       for (let query of queries) {
+//         await connection.query(query);
+//       }
   
-      console.log('Database setup successful.');
-      connection.release();
-    } catch (err) {
-      console.error('Error setting up database:', err);
-    }
-  }
+//       console.log('Database setup successful.');
+//       connection.release();
+//     } catch (err) {
+//       console.error('Error setting up database:', err);
+//     }
+//   }
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   startApp();
 });
 
-setupDatabase();
+// setupDatabase();
 
 async function startApp() {
-  const inquirer = await import('inquirer').then((mod) => mod.default);
-
-  const connection = await pool.getConnection(); // Define connection here
   inquirer
     .prompt({
       name: 'action',
