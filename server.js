@@ -22,14 +22,14 @@ connection.connect((err) => {
   
     console.log('Connected to the database.');
   
-    const schemaPath = path.join(__dirname, 'schema.sql');
+    const schemaPath = path.join(__dirname, 'db', 'schema.sql');
     const schema = fs.readFileSync(schemaPath, 'utf8');
     connection.query(schema, (err, result) => {
       if (err) throw err;
       console.log('Schema executed successfully.');
     });
   
-    const seedPath = path.join(__dirname, 'seed.sql');
+    const seedPath = path.join(__dirname, 'db', 'seeds.sql');
     const seed = fs.readFileSync(seedPath, 'utf8');
     connection.query(seed, (err, result) => {
       if (err) throw err;
