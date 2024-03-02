@@ -59,44 +59,44 @@ async function startApp() {
     .then((answer) => {
       switch (answer.action) {
         case 'View all departments':
-          viewDepartments(connection);
+          viewDepartments(db);
           break;
         case 'View all roles':
-          viewRoles(connection);
+          viewRoles(db);
           break;
         case 'View all employees':
-          viewEmployees(connection);
+          viewEmployees(db);
           break;
         case 'Add a department':
-          addDepartment(connection);
+          addDepartment(db);
           break;
         case 'Add a role':
-          addRole(connection);
+          addRole(db);
           break;
         case 'Add an employee':
-          addEmployee(connection);
+          addEmployee(db);
           break;
         case 'Update an employee role':
-          updateEmployeeRole(connection);
+          updateEmployeeRole(db);
           break;
         case 'Exit':
-          connection.end();
+          db.end();
           break;
       }
     });
 }
 
 // Ability to view tables
-function viewDepartments(connection) {
-  connection.query('SELECT * FROM department', (err, res) => {
+function viewDepartments(db) {
+  db.query('SELECT * FROM department', (err, res) => {
     if (err) throw err;
     console.table(res);
     startApp();
   });
 }
 
-function viewRoles(connection) {
-  connection.query(
+function viewRoles(db) {
+  db.query(
     'SELECT role.id, role.title, role.salary, department.name AS department FROM role LEFT JOIN department ON role.department_id = department.id',
     (err, res) => {
       if (err) throw err;
@@ -106,8 +106,8 @@ function viewRoles(connection) {
   );
 }
 
-function viewEmployees(connection) {
-  connection.query(
+function viewEmployees(db) {
+  db.query(
     `SELECT employee.id, employee.first_name, employee.last_name, role.title, role.salary, department.name AS department, CONCAT(manager.first_name, ' ', manager.last_name) AS manager
     FROM employee
     LEFT JOIN role ON employee.role_id = role.id
@@ -121,7 +121,7 @@ function viewEmployees(connection) {
   );
 }
 
-function addDepartment(connection) {
+function addDepartment(db) {
   inquirer
     .prompt({
       name: 'name',
@@ -129,7 +129,7 @@ function addDepartment(connection) {
       message: 'Enter the name of the department:',
     })
     .then((answer) => {
-      connection.query(
+      db.query(
         'INSERT INTO department SET ?',
         {
           name: answer.name,
@@ -144,8 +144,8 @@ function addDepartment(connection) {
 }
 
 //inquire for adding new roles to the company
-function addRole(connection) {
-  connection.query('SELECT * FROM department', (err, departments) => {
+function addRole(db) {
+  db.query('SELECT * FROM department', (err, departments) => {
     if (err) throw err;
 
     inquirer
@@ -172,7 +172,7 @@ function addRole(connection) {
           (department) => department.name === answer.department
         );
 
-        connection.query(
+        db.query(
           'INSERT INTO role SET ?',
           {
             title: answer.title,
@@ -190,11 +190,11 @@ function addRole(connection) {
 }
 
 //inquire for adding new employees to the company
-function addEmployee(connection) {
-  connection.query('SELECT * FROM role', (err, roles) => {
+function addEmployee(db) {
+  db.query('SELECT * FROM role', (err, roles) => {
     if (err) throw err;
 
-    connection.query(
+    db.query(
       'SELECT * FROM employee WHERE manager_id IS NULL',
       (err, managers) => {
         if (err) throw err;
@@ -231,7 +231,7 @@ function addEmployee(connection) {
                 `${manager.first_name} ${manager.last_name}` === answer.manager
             );
 
-            connection.query(
+            db.query(
               'INSERT INTO employee SET ?',
               {
                 first_name: answer.first_name,
@@ -252,11 +252,11 @@ function addEmployee(connection) {
 }
 
 //inquire for update roles for an existing client
-function updateEmployeeRole(connection) {
-    connection.query('SELECT * FROM employee', (err, employees) => {
+function updateEmployeeRole(db) {
+    db.query('SELECT * FROM employee', (err, employees) => {
       if (err) throw err;
   
-      connection.query('SELECT * FROM role', (err, roles) => {
+      db.query('SELECT * FROM role', (err, roles) => {
         if (err) throw err;
   
         inquirer
@@ -283,7 +283,7 @@ function updateEmployeeRole(connection) {
             );
             const role = roles.find((role) => role.title === answer.role);
   
-            connection.query(
+            db.query(
               'UPDATE employee SET role_id = ? WHERE id = ?',
               [role.id, employee.id],
               (err) => {
