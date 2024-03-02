@@ -1,8 +1,9 @@
 const express = require('express');
-const mysql = require('mysql2/promise');
-const inquirer = require('inquirer');
-const fs = require('fs').promises; // Using fs.promises for asynchronous file reading
+const mysql = require('mysql2');
 const path = require('path');
+const fs = require('fs');
+const inquirer = require('inquirer');
+
 const app = express();
 const PORT = 3001;
 
@@ -16,22 +17,22 @@ const pool = mysql.createPool({
 });
 
 async function setupDatabase() {
-  try {
-    const schemaPath = path.join(__dirname, 'db', 'schema.sql');
-    const schema = await fs.readFile(schemaPath, 'utf8');
-    const queries = schema.split(';').filter((query) => query.trim() !== '');
-
-    const connection = await pool.getConnection();
-    for (let query of queries) {
-      await connection.query(query);
+    try {
+      const schemaPath = path.join(__dirname, 'db', 'schema.sql');
+      const schema = fs.readFileSync(schemaPath, 'utf8');
+      const queries = schema.split(';').filter((query) => query.trim() !== '');
+  
+      const connection = await pool.getConnection();
+      for (let query of queries) {
+        await connection.query(query);
+      }
+  
+      console.log('Database setup successful.');
+      connection.release();
+    } catch (err) {
+      console.error('Error setting up database:', err);
     }
-
-    console.log('Database setup successful.');
-    connection.release();
-  } catch (err) {
-    console.error('Error setting up database:', err);
   }
-}
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
@@ -41,6 +42,8 @@ app.listen(PORT, () => {
 setupDatabase();
 
 async function startApp() {
+  const inquirer = await import('inquirer').then((mod) => mod.default);
+
   const connection = await pool.getConnection(); // Define connection here
   inquirer
     .prompt({
