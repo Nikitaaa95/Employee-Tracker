@@ -1,5 +1,7 @@
 const express = require('express');
 const mysql = require('mysql2');
+const path = require('path');
+const fs = require('fs');
 
 const PORT = process.env.PORT || 3001;
 const app = express();
@@ -13,15 +15,34 @@ const connection = mysql.createConnection({
 });
 
 connection.connect((err) => {
-  if (err) throw err;
-  console.log('Connected to the company database.');
-  startApp();
-});
+    if (err) {
+      console.error('Error connecting to database: ', err);
+      return;
+    }
+  
+    console.log('Connected to the database.');
+  
+    const schemaPath = path.join(__dirname, 'schema.sql');
+    const schema = fs.readFileSync(schemaPath, 'utf8');
+    connection.query(schema, (err, result) => {
+      if (err) throw err;
+      console.log('Schema executed successfully.');
+    });
+  
+    const seedPath = path.join(__dirname, 'seed.sql');
+    const seed = fs.readFileSync(seedPath, 'utf8');
+    connection.query(seed, (err, result) => {
+      if (err) throw err;
+      console.log('Seed executed successfully.');
+    });
+  
+    connection.end();
+  });
 
 async function startApp() {
-    const inquirer = require('inquirer');
+    const inquirer = await import('inquirer');
 
-  inquirer
+    inquirer.default
     .prompt({
       name: 'action',
       type: 'list',
